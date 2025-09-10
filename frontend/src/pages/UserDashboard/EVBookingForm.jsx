@@ -89,6 +89,14 @@ const EVBookingForm = () => {
     navigate("/map");
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token"); 
+    
+    navigate("/login");
+  };
+
+  const username = localStorage.getItem("username");
+
   return (
     <div style={{ background: "#fff", minHeight: "100vh", padding: 0 }}>
       <style>{`
@@ -189,57 +197,13 @@ const EVBookingForm = () => {
           
         </div>
         <div className="navbar-right">
-          <span><FaUser /> BIKE User</span>
-          <button onClick={() => navigate("/Login")}>Đăng Nhập</button>
+          <span><FaUser /> {username || "BIKE User"} </span>
+          <button onClick={handleLogout}>Đăng Xuất</button>
         </div>
       </div>
 
       {/* === Nội dung cũ của form === */}
       <div className="gf-container">
-        {/* Tabs */}
-        {/* <div className="gf-tabs">
-          {tabs.map(tab => (
-            <button
-              key={tab.value}
-              className={`gf-tab${activeTab === tab.value ? " active" : ""}`}
-              onClick={() => setActiveTab(tab.value)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div> */}
-
-        {/* Bộ lọc */}
-        {/* <form className="gf-filter-row" onSubmit={handleSearchCar}>
-          <label>
-            Tỉnh/Thành phố
-            <select value={city} onChange={e => setCity(e.target.value)}>
-              <option value="">Chọn tỉnh/Thành phố</option>
-              
-              <option value="TP HCM">TP HCM</option>
-            </select>
-          </label>
-          <label>
-            Ngày nhận xe
-            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-          </label>
-          <label>
-            Giờ nhận xe
-            <input type="time" value={timeFrom} onChange={e => setTimeFrom(e.target.value)} />
-          </label>
-          <label>
-            Ngày trả xe
-            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-          </label>
-          <label>
-            Giờ trả xe
-            <input type="time" value={timeTo} onChange={e => setTimeTo(e.target.value)} />
-          </label>
-          <button className="gf-btn-search" type="submit">
-            Tìm kiếm xe
-          </button>
-          
-        </form> */}
 
         {/* Danh sách xe */}
         <div className="gf-car-list">
