@@ -90,14 +90,14 @@ const EVBookingForm = () => {
   };
 
   return (
-    <div style={{ background: "#fafbfc", minHeight: "100vh", padding: 0 }}>
+    <div style={{ background: "#fff", minHeight: "100vh", padding: 0 }}>
       <style>{`
   /* ===== NAVBAR ===== */
   .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #1976d2; /* xanh biển */
+    background: #14452F; /* xanh lá cây */
     padding: 12px 24px;
     color: white;
     border-radius: 0 0 12px 12px;
@@ -154,19 +154,19 @@ const EVBookingForm = () => {
   .gf-container { max-width: 1200px; margin: 0 auto; padding: 32px 16px; }
   .gf-tabs { display: flex; gap: 16px; margin-bottom: 24px; }
   .gf-tab { padding: 10px 32px; border: none; background: #fff; color: #222; font-weight: 600; font-size: 1.1rem; border-radius: 8px 8px 0 0; border-bottom: 3px solid transparent; cursor: pointer; }
-  .gf-tab.active { background: #1976d2; color: #fff; border-bottom: 3px solid #1976d2; }
+  .gf-tab.active { background: #A5D6A7; color: #fff; border-bottom: 3px solid #A5D6A7; }
   .gf-filter-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; background: #fff; padding: 24px 16px; border-radius: 12px; margin-bottom: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
   .gf-filter-row label { font-size: 0.95rem; color: #333; margin-right: 4px; display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
   .gf-filter-row input, .gf-filter-row select { padding: 10px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; margin-top: 2px; }
-  .gf-btn-search { background: #1976d2; color: #fff; border: none; border-radius: 8px; padding: 12px 32px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-  .gf-btn-search:hover { background: #115293; } /* xanh biển đậm hơn khi hover */
+  .gf-btn-search { background: #A5D6A7; color: #fff; border: none; border-radius: 8px; padding: 12px 32px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+  .gf-btn-search:hover { background: #A5D6A7; } /* xanh biển đậm hơn khi hover */
   .gf-car-list { display: flex; flex-wrap: wrap; gap: 32px; justify-content: flex-start; }
   .gf-car-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); width: 350px; padding: 0 0 18px 0; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-  .gf-car-badge { position: absolute; top: 18px; left: 18px; background: #1976d2; color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 0.95rem; font-weight: 500; z-index: 2; }
+  .gf-car-badge { position: absolute; top: 18px; left: 18px; background: #A5D6A7; color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 0.95rem; font-weight: 500; z-index: 2; }
   .gf-car-badge.soldout { background: #ff6b6b; }
   .gf-car-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px 12px 0 0; }
   .gf-car-content { padding: 18px 18px 0 18px; flex: 1; }
-  .gf-car-price { color: #1976d2; font-size: 1.3rem; font-weight: bold; }
+  .gf-car-price { color: #14452F; font-size: 1.3rem; font-weight: bold; }
   .gf-car-title { font-size: 1.15rem; font-weight: 600; margin: 8px 0 6px 0; }
   .gf-car-info { display: flex; gap: 16px; font-size: 0.98rem; color: #444; margin-top: 8px; }
   .gf-car-info span { display: flex; align-items: center; gap: 4px; }
@@ -180,8 +180,7 @@ const EVBookingForm = () => {
       {/* === Thanh navbar === */}
       <div className="navbar">
         <div className="navbar-left">
-          <FaBolt color="gold" />
-          Xedienvip.vn
+          <FaBolt style={{ marginRight: '8px', color: '#fbc02d' }} />EcoMove
         </div>
         <div className="navbar-menu">
           <button onClick={() => navigate("/")}>Trang chủ</button>
@@ -198,7 +197,7 @@ const EVBookingForm = () => {
       {/* === Nội dung cũ của form === */}
       <div className="gf-container">
         {/* Tabs */}
-        <div className="gf-tabs">
+        {/* <div className="gf-tabs">
           {tabs.map(tab => (
             <button
               key={tab.value}
@@ -208,10 +207,10 @@ const EVBookingForm = () => {
               {tab.label}
             </button>
           ))}
-        </div>
+        </div> */}
 
         {/* Bộ lọc */}
-        <form className="gf-filter-row" onSubmit={handleSearchCar}>
+        {/* <form className="gf-filter-row" onSubmit={handleSearchCar}>
           <label>
             Tỉnh/Thành phố
             <select value={city} onChange={e => setCity(e.target.value)}>
@@ -240,7 +239,7 @@ const EVBookingForm = () => {
             Tìm kiếm xe
           </button>
           
-        </form>
+        </form> */}
 
         {/* Danh sách xe */}
         <div className="gf-car-list">

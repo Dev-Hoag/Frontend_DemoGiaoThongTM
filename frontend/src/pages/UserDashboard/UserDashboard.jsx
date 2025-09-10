@@ -12,7 +12,7 @@ const UserDashboard = () => {
   return ( 
     <div
       style={{
-        backgroundColor: "#e0f7fa",
+        backgroundColor: "#A5D6A7",
         minHeight: "100vh",
         padding: "20px",
         display: "flex",
