@@ -10,7 +10,7 @@ const HomePage = () => {
       <style>{`
         .homepage {
           font-family: 'Segoe UI', sans-serif;
-          background: #28a745;
+          background: #fff;
           min-height: 100vh;
           display: flex;
           flex-direction: column;
@@ -102,7 +102,7 @@ const HomePage = () => {
         <div className="navbar-menu">
           <Link to="/" className="menu-item">Trang Chủ</Link>
           <Link to="/dashboard" className="menu-item">Đặt Xe</Link>
-          <Link to="/map" className="menu-item">Tìm Trạc Sạc</Link>
+          <Link to="/map" className="menu-item">Tìm Trạm Sạc</Link>
         </div>
         <div className="navbar-user">
           <Link to="/login" className="logout-btn">Đăng nhập</Link>
