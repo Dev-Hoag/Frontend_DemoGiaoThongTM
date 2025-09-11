@@ -35,6 +35,7 @@ const BookingForm = () => {
           padding: 25px;
           border-radius: 12px;
           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          text-align: left;
         }
         .booking-form h2 { margin-bottom: 20px; color: #007bff; }
         .booking-form form { display: flex; flex-direction: column; gap: 15px; }
@@ -91,7 +92,11 @@ const BookingForm = () => {
             </div>
             <label>
               Địa điểm nhận xe
-              <input type="text" placeholder="VD: Hà Nội, TP.HCM..." />
+              <input type="text" placeholder="Bến Nghé, Quận 1, TP.HCM..." />
+            </label>
+            <label>
+              Địa điểm trả xe
+              <input type="text" placeholder="58 Đường số 8, kp 2, Hiệ Bình Chánh, Thủ Đức, TP.HCM..." />
             </label>
             <button type="submit" className="submit-btn">
               Xác nhận đặt xe

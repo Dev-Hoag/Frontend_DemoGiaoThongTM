@@ -46,8 +46,10 @@ export default function LoginPage() {
       const roles = profileData.result.roles || [];
       
       if (Array.isArray(roles) && roles.includes("ADMIN")) {
+        localStorage.setItem("adminInfo", JSON.stringify(profileData.result));
         window.location.href = "/admin/dashboard";
       } else {
+        localStorage.setItem("userRole", "user");
         window.location.href = "/dashboard";
       }
 

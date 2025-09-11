@@ -28,7 +28,7 @@ const AdminDashboard = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminInfo');
     setIsAuthenticated(false);
-    navigate('/admin/login');
+    navigate('/login');
     console.log('Đăng xuất thành công, token đã xóa - AdminDashboard.jsx:32');
   };
 

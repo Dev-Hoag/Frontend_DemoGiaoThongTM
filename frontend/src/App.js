@@ -7,7 +7,6 @@ import LoginRegisterPage from "./pages/LoginRegisterPage";
 import { AuthProvider } from "./AuthContext";
 
 // 🔹 Admin pages
-import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/admindashboard/AdminDashboard";
 
 // 🔹 User pages
@@ -21,10 +20,15 @@ import BookingForm from "./pages/Bookingform.jsx";
 // =======================
 // Route bảo vệ Admin
 const AdminProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = React.useContext(require("./AuthContext").AuthContext);
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("userRole");
   const location = useLocation();
-  if (isAuthenticated === null) return null;
-  return isAuthenticated ? children : <Navigate to="/admin/login" state={{ from: location }} replace />;
+
+  if (!token || role !== "admin") {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
 };
 
 const AdminLoginRedirect = ({ children }) => {
@@ -33,12 +37,17 @@ const AdminLoginRedirect = ({ children }) => {
   if (isAuthenticated === null) return null;
   return isAuthenticated ? <Navigate to="/admin/dashboard" state={{ from: location }} replace /> : children;
 };
+
 // =======================
 
 function App() {
-  // Kiểm tra quyền cho user
   const isAdmin = localStorage.getItem("userRole") === "admin";
   const isLoggedIn = !!localStorage.getItem("token");
+
+  console.log("TOKEN:", localStorage.getItem("token"));
+  console.log("isLoggedIn:", isLoggedIn);
+  console.log("isAdmin:", isAdmin);
+
 
   return (
     <AuthProvider>
@@ -78,10 +87,7 @@ function App() {
             />
 
             {/* 🔹 Admin routes */}
-            <Route
-              path="/admin/login"
-              element={<AdminLoginRedirect><AdminLogin /></AdminLoginRedirect>}
-            />
+
             <Route
               path="/admin/dashboard"
               element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>}

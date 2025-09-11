@@ -65,12 +65,6 @@ const carData = [
   }
 ];
 
-const tabs = [
-  { label: "Thuê ngày", value: "ngay" },
-  { label: "Thuê tháng", value: "thang" },
-  { label: "Thuê năm", value: "nam" }
-];
-
 const EVBookingForm = () => {
   const [activeTab, setActiveTab] = useState("ngay");
   const [city, setCity] = useState("");
