@@ -128,6 +128,7 @@ const HomePage = () => {
           <Link to="/" className="menu-item">Trang chủ</Link>
           <Link to="/dashboard" className="menu-item">Thuê xe</Link>
           <Link to="/map" className="menu-item">Gợi ý trạm sạc</Link>
+          <Link to="/history" className="menu-item">Lịch sử thuê xe</Link>
         </div>
         <div className="navbar-user">
           <button className="logout-btn" onClick={handleLogout}>Đăng xuất</button>

@@ -16,6 +16,7 @@ import HomePage from "./pages/UserDashboard/HomePage.jsx";
 import RentPage from "./pages/RentPage";
 import MapPage from "./pages/MapPage.jsx";
 import BookingForm from "./pages/Bookingform.jsx";
+import BookingHistory from "./pages/UserDashboard/BookingHistory.jsx";
 
 // =======================
 // Route bảo vệ Admin
@@ -76,14 +77,21 @@ function App() {
               path="/rent"
               element={isLoggedIn ? <RentPage /> : <Navigate to="/login" replace />}
             />
-            <Route path="/rent/:carId" element={<RentPage />} />
             <Route
-              path="/booking-form"
+              path="/rent/:vehicleId"
+              element={isLoggedIn ? <RentPage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/booking-form/:vehicleId"
               element={isLoggedIn ? <BookingForm /> : <Navigate to="/login" replace />}
             />
             <Route
               path="/map"
               element={isLoggedIn ? <MapPage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/history"
+              element={isLoggedIn ? <BookingHistory /> : <Navigate to="/login" replace />}
             />
 
             {/* 🔹 Admin routes */}

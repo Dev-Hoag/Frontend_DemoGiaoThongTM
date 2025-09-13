@@ -1,69 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import bydseal from '../../assets/bydseal.jpg';
-import klara from '../../assets/klara.jpg';
-import tesla from '../../assets/tesla.jpg';
-import vf9 from '../../assets/vinfast-vf9.jpg';
-import vf8 from '../../assets/vinfast8.jpg';
 import { FaBolt, FaUser } from "react-icons/fa";
-
-const carData = [
-  {
-    name: "VinFast VF 3",
-    price: 590000,
-    badge: "Miễn phí sạc",
-    status: "available",
-    img: vf8,
-    type: "Minicar",
-    range: "210km (NEDC)",
-    seats: 4,
-    trunk: "285L"
-  },
-  {
-    name: "VinFast VF 6 Plus",
-    price: 1250000,
-    badge: "Miễn phí sạc",
-    status: "soldout",
-    img: vf9,
-    type: "B-SUV",
-    range: "460km (NEDC)",
-    seats: 5,
-    trunk: "423L"
-  },
-  {
-    name: "Tesla Model 3",
-    price: 1100000,
-    badge: "Miễn phí sạc",
-    status: "available",
-    img: tesla,
-    type: "Sedan",
-    range: "480km (NEDC)",
-    seats: 5,
-    trunk: "423L"
-  },
-  {
-    name: "BYD Seal",
-    price: 980000,
-    badge: "Miễn phí sạc",
-    status: "available",
-    img: bydseal,
-    type: "Sedan",
-    range: "500km (NEDC)",
-    seats: 5,
-    trunk: "430L"
-  },
-  {
-    name: "VinFast Klara",
-    price: 350000,
-    badge: "Miễn phí sạc",
-    status: "available",
-    img: klara,
-    type: "Xe máy điện",
-    range: "120km (NEDC)",
-    seats: 2,
-    trunk: "20L"
-  }
-];
 
 const EVBookingForm = () => {
   const [activeTab, setActiveTab] = useState("ngay");
@@ -72,10 +9,144 @@ const EVBookingForm = () => {
   const [dateTo, setDateTo] = useState("");
   const [timeFrom, setTimeFrom] = useState("");
   const [timeTo, setTimeTo] = useState("");
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const fetchVehicles = async () => {
+    try{
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8080/api/vehicles", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Lỗi khi lấy danh sách xe");
+      }
+
+      const data = await response.json();
+      const transformedVehicles = transformBackendData(data);
+      setVehicles(transformedVehicles);
+    }catch (error) {
+      console.error("Lỗi khi kết nối backend:", error);
+      setVehicles(getDefaultVehicles());
+      alert("Lỗi kết nối server");
+    }
+  }
+
+  const transformBackendData = (backendVehicles) => {
+    return backendVehicles.map((vehicle, index) => ({
+      id: vehicle.id,
+      name: vehicle.name,
+      price: parsePrice(vehicle.price), // "1.200.000" -> 1200000
+      badge: vehicle.status === 'available' ? "Miễn phí sạc" : "Hết xe",
+      status: vehicle.status === 'available' ? 'available' : 'soldout',
+      img: getVehicleImage(vehicle.image, vehicle.type), // Xử lý image URL
+      type: vehicle.type,
+      range: vehicle.range, // "450km"
+      seats: parseSeats(vehicle.seats), // "5 chỗ" -> 5
+      trunk: vehicle.trunk // "450L"
+    }));
+  };
+
+  const parseSeats = (seatsStr) => {
+    if (!seatsStr) return 0;
+    return parseInt(seatsStr.replace(/[^0-9]/g, ''));
+  };
+
+  const getVehicleImage = (imageUrl, vehicleType) => {
+  
+    if (imageUrl) {
+      
+      if (imageUrl.startsWith('/')) {
+        return `${window.location.origin}${imageUrl}`;
+      }
+      return imageUrl;
+    }
+    
+    return getDefaultImageByType(vehicleType);
+  };
+
+  const getDefaultImageByType = (type) => {
+    const defaultImages = {
+      'Minicar': '/images/vinfastvf3.jpg',
+      'Sedan': '/images/tesla.png',
+      'SUV': '/images/byd-atto3.jpg',
+      'E-SUV': '/images/vinfast-vf9.jpg',
+      'D-SUV': '/images/vinfast8.jpg',
+      'Crossover': '/images/vinfastvf7-eco.png'
+    };
+    
+    return defaultImages[type] || '/images/default-car.jpg';
+  };
+
+  const getDefaultVehicles = () => [
+    {
+      id: 'sample-1',
+      name: "VinFast VF 3",
+      price: 590000,
+      badge: "Miễn phí sạc",
+      status: "available",
+      img: '/images/vinfastvf3.jpg',
+      type: "Minicar",
+      range: "210km",
+      seats: 4,
+      trunk: "285L"
+    },
+    {
+      id: 'sample-2',
+      name: "VinFast VF 6 Plus",
+      price: 1250000,
+      badge: "Hết xe",
+      status: "soldout",
+      img: '/images/vinfast-vf9.jpg',
+      type: "B-SUV",
+      range: "460km",
+      seats: 5,
+      trunk: "423L"
+    },
+    {
+      id: 'sample-3',
+      name: "Tesla Model 3",
+      price: 1100000,
+      badge: "Miễn phí sạc",
+      status: "available",
+      img: '/images/tesla.png',
+      type: "Sedan",
+      range: "480km",
+      seats: 5,
+      trunk: "423L"
+    },
+    {
+      id: 'sample-4',
+      name: "BYD Seal",
+      price: 980000,
+      badge: "Miễn phí sạc",
+      status: "available",
+      img: '/images/bydseal.jpg',
+      type: "Sedan",
+      range: "500km",
+      seats: 5,
+      trunk: "430L"
+    }
+  ];
+
+  const parsePrice = (priceStr) => {
+    if (!priceStr) return 0;
+    return parseInt(priceStr.replace(/[^0-9]/g, ''));
+  };
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
 
   const handleSearchCar = (e) => {
     e.preventDefault();
+    fetchVehicles();
   };
 
   const handleSearchStation = (e) => {
@@ -87,6 +158,11 @@ const EVBookingForm = () => {
     localStorage.removeItem("token"); 
     
     navigate("/login");
+  };
+
+  const handleVehicleClick = (vehicle) => {
+    // Navigate với vehicle ID thật từ backend
+    navigate(`/rent/${vehicle.id}`);
   };
 
   const username = localStorage.getItem("username");
@@ -188,7 +264,7 @@ const EVBookingForm = () => {
           <button onClick={() => navigate("/")}>Trang chủ</button>
           <button onClick={() => navigate("/dashboard")}>Xe Điện</button>
           <button onClick={() => navigate("/map")}>Trạm sạc</button>
-          
+          <button onClick={() => navigate("/history")}>Lịch sử thuê xe</button>
         </div>
         <div className="navbar-right">
           <span><FaUser /> {username || "BIKE User"} </span>
@@ -198,40 +274,65 @@ const EVBookingForm = () => {
 
       {/* === Nội dung cũ của form === */}
       <div className="gf-container">
+        {loading && (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Đang tải danh sách xe...</p>
+          </div>
+        )}
+
+        {!loading && vehicles.length === 0 && (
+          <div className="no-data">
+            <p>Không có xe nào khả dụng</p>
+            <button className="gf-btn-search" onClick={fetchVehicles}>
+              Thử lại
+            </button>
+          </div>
+        )}
 
         {/* Danh sách xe */}
-        <div className="gf-car-list">
-          {carData.map((car, idx) => (
-            <div
-              className="gf-car-card"
-              key={idx}
-              style={{ cursor: "pointer" }}
-              onClick={() => navigate(`/rent/${idx}`)}
-            >
-              <div className={`gf-car-badge${car.status === "soldout" ? " soldout" : ""}`}>
-                {car.status === "soldout" ? "Hết xe" : car.badge}
+        {!loading && vehicles.length > 0 && (
+          <div className="gf-car-list">
+            {vehicles.map((car) => (
+              <div
+                className="gf-car-card"
+                key={car.id}
+                style={{ cursor: "pointer" }}
+                onClick={() => handleVehicleClick(car)}
+              >
+                <div className={`gf-car-badge ${car.status}`}>
+                  {car.badge}
+                </div>
+                <img 
+                  src={car.img} 
+                  alt={car.name} 
+                  className="gf-car-img"
+                  onError={(e) => {
+                    console.log(`Lỗi tải ảnh cho ${car.name}: ${e.target.src}`);
+                    e.target.src = '/images/default-car.jpg';
+                  }}
+                />
+                <div className="gf-car-content">
+                  <div style={{ marginBottom: 8 }}>
+                    <span style={{ fontWeight: 500 }}>Chỉ từ </span>
+                    <span className="gf-car-price">
+                      {car.price.toLocaleString()} VNĐ/Ngày
+                    </span>
+                  </div>
+                  <div className="gf-car-title">{car.name}</div>
+                  <div className="gf-car-info">
+                    <span>🚗 {car.type}</span>
+                    <span>🔋 {car.range}</span>
+                  </div>
+                  <div className="gf-car-info">
+                    <span>👥 {car.seats} chỗ</span>
+                    <span>🧳 Dung tích cốp {car.trunk}</span>
+                  </div>
+                </div>
               </div>
-              <img src={car.img} alt={car.name} className="gf-car-img" />
-              <div className="gf-car-content">
-                <div style={{ marginBottom: 8 }}>
-                  <span style={{ fontWeight: 500 }}>Chỉ từ </span>
-                  <span className="gf-car-price">
-                    {car.price.toLocaleString()} VNĐ/Ngày
-                  </span>
-                </div>
-                <div className="gf-car-title">{car.name}</div>
-                <div className="gf-car-info">
-                  <span>🚗 {car.type}</span>
-                  <span>🔋 {car.range}</span>
-                </div>
-                <div className="gf-car-info">
-                  <span>👥 {car.seats} chỗ</span>
-                  <span>🧳 Dung tích cốp {car.trunk}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

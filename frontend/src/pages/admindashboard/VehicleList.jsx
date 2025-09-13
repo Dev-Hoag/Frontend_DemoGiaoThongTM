@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // Nhập useState từ React để quản lý trạng thái
+import React, { useEffect, useState } from 'react'; // Nhập useState từ React để quản lý trạng thái
 import { Plus, Edit, Trash2 } from 'lucide-react'; // Nhập các icon từ lucide-react
 import './VehicleList.css'; // Nhập file CSS cho danh sách xe
 
@@ -54,9 +54,11 @@ const FormInput = ({ id, label, type = 'text', value, onChange, placeholder, req
 // Component chính quản lý danh sách xe và modal thêm/sửa
 const VehicleList = () => {
   // State để quản lý danh sách xe, modal, và dữ liệu form
-  const [vehicles, setVehicles] = useState(initialVehicles);
+  // const [vehicles, setVehicles] = useState(initialVehicles);
+  const [vehicles, setVehicles] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     image: '',
@@ -75,29 +77,119 @@ const VehicleList = () => {
     maintenance: 'Bảo trì'
   }[status] || 'Có sẵn');
 
+  const fetchVehicles = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch("http://localhost:8080/api/vehicles", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Không thể tải danh sách xe');
+      }
+      
+      const data = await response.json();
+      // Backend trả về List<VehicleResponse> trực tiếp, không có wrapper
+      setVehicles(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Lỗi khi kết nối backend:", error);
+      alert("Lỗi kết nối server: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Xử lý submit form (thêm hoặc cập nhật xe)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newVehicle = editingVehicle
-      ? { ...formData, id: editingVehicle.id }
-      : { ...formData, id: Date.now() };
-    setVehicles(prev => editingVehicle
-      ? prev.map(v => v.id === editingVehicle.id ? newVehicle : v)
-      : [...prev, newVehicle]);
-    handleCloseModal();
+    setLoading(true);
+
+    const token = localStorage.getItem('token');
+    const url = editingVehicle
+    ? `http://localhost:8080/api/vehicles/${editingVehicle.id}`
+    : 'http://localhost:8080/api/vehicles';
+    const method = editingVehicle ? 'PUT' : 'POST';
+    try{
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error('Thêm/cập nhật xe thất bại');
+      }
+
+      const savedVehicle = await response.json();
+
+      const vehicle = savedVehicle;
+      if (editingVehicle) {
+        setVehicles((prev) =>
+          prev.map((v) => (v.id === editingVehicle.id ? savedVehicle : v))
+        );
+        alert('Cập nhật xe thành công!');
+      } else {
+        setVehicles((prev) => [...prev, savedVehicle]);
+        alert('Thêm xe mới thành công!');
+      }
+
+      handleCloseModal();
+    } catch (error) {
+      console.error("Lỗi khi kết nối backend:", error);
+      alert("Lỗi kết nối server");
+    }
   };
 
   // Xử lý xóa xe với xác nhận
-  const handleDelete = (vehicleId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa xe này?')) {
-      setVehicles(prev => prev.filter(v => v.id !== vehicleId));
+  const handleDelete = async (vehicleId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa xe này?')) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/vehicles/${vehicleId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error('Xóa xe thất bại');
+      };
+
+      setVehicles((prev) => prev.filter((v) => v.id !== vehicleId));
+      alert('Xóa xe thành công!');
+    } catch (error) {
+      console.error("Lỗi khi kết nối backend:", error);
+      alert("Lỗi kết nối server");
     }
   };
 
   // Xử lý mở modal chỉnh sửa
   const handleEdit = (vehicle) => {
     setEditingVehicle(vehicle);
-    setFormData({ ...vehicle });
+    setFormData({ 
+      name: vehicle.name || '',
+      image: vehicle.image || '',
+      price: vehicle.price || '',
+      type: vehicle.type || '',
+      range: vehicle.range || '',
+      seats: vehicle.seats || '',
+      trunk: vehicle.trunk || '',
+      status: vehicle.status || 'available', 
+    });
     setShowModal(true);
   };
 
@@ -137,17 +229,29 @@ const VehicleList = () => {
   const handleInputChange = (field) => (e) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
   };
+  
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
 
   // Render giao diện
   return (
     <div className="station-list">
       {/* Header với tiêu đề và nút thêm xe */}
       <div className="list-header">
-        <h2 className="title-black">Danh sách xe điện ({vehicles.length})</h2>
-        <button className="add-btn" onClick={handleAddClick}>
+        <h2 className="title-black">Danh sách xe điện ({vehicles.length}) {loading && <span className="loading-text"> - Đang tải...</span>} </h2>
+        <button className="add-btn" onClick={handleAddClick} disabled={loading}>
           <Plus size={14} /> Thêm xe mới
         </button>
       </div>
+
+      {/* Loading indicator */}
+      {loading && (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Đang xử lý...</p>
+        </div>
+      )}
 
       {/* Lưới hiển thị danh sách xe */}
       <div className="vehicle-grid">
@@ -318,11 +422,11 @@ const VehicleList = () => {
               </div>
 
               <div className="form-actions-improved">
-                <button type="button" className="btn-cancel-improved" onClick={handleCloseModal}>
+                <button type="button" className="btn-cancel-improved" onClick={handleCloseModal} disabled={loading}>
                   Hủy
                 </button>
-                <button type="submit" className="btn-submit-improved">
-                  {editingVehicle ? 'Cập nhật' : 'Thêm mới'}
+                <button type="submit" className="btn-submit-improved" disabled={loading}>
+                  {loading ? 'Đang xử lý...' : (editingVehicle ? 'Cập nhật' : 'Thêm mới')}
                 </button>
               </div>
             </form>

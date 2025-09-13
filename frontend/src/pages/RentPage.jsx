@@ -1,24 +1,63 @@
-import React from "react";
-import { useParams } from "react-router-dom";
-import bydseal from '../assets/bydseal.jpg';
-import klara from '../assets/klara.jpg';
-import tesla from '../assets/tesla.jpg';
-import vf9 from '../assets/vinfast-vf9.jpg';
-import vf8 from '../assets/vinfast8.jpg'; 
-
-const carData = [
-  { name: "VinFast VF 3", img: vf8 },
-  { name: "VinFast VF 6 Plus", img: vf9 },
-  { name: "Tesla Model 3", img: tesla },
-  { name: "BYD Seal", img: bydseal },
-  { name: "VinFast Klara", img: klara }
-];
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
 const RentPage = () => {
-  const { carId } = useParams();
-  const car = carData[carId];
+  const { vehicleId } = useParams();
+  const navigate = useNavigate();
+  const [vehicle, setVehicle] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!car) return <div>Không tìm thấy xe!</div>;
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:8080/api/vehicles/${vehicleId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error("Không thể lấy thông tin xe");
+        }
+        
+        const data = await response.json();
+        setVehicle(data);
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin xe:", error);
+        alert("Không thể tải thông tin xe");
+        navigate("/dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (vehicleId) {
+      fetchVehicle();
+    }
+  }, [vehicleId, navigate]);
+
+  const handleBookingClick = () => {
+    navigate(`/booking-form/${vehicleId}`);
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Đang tải thông tin xe...</div>
+      </div>
+    );
+  }
+
+  if (!vehicle) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Không tìm thấy xe!</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -28,6 +67,21 @@ const RentPage = () => {
           margin: auto;
           padding: 20px;
           font-family: Arial, sans-serif;
+        }
+
+        .back-btn {
+          background: #6c757d;
+          color: white;
+          padding: 8px 16px;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          margin-bottom: 20px;
+          display: block;
+          width: fit-content;
+        }
+        .back-btn:hover {
+          background: #5a6268;
         }
 
         /* --- Layout Desktop --- */
@@ -43,23 +97,6 @@ const RentPage = () => {
         .main-img {
           width: 100%;
           border-radius: 10px;
-        }
-        .thumbnail-list {
-          display: flex;
-          gap: 10px;
-          margin-top: 10px;
-          flex-wrap: wrap;
-        }
-        .thumbnail {
-          width: 80px;
-          height: 60px;
-          object-fit: cover;
-          border-radius: 6px;
-          cursor: pointer;
-          border: 2px solid transparent;
-        }
-        .thumbnail:hover {
-          border-color: #007bff;
         }
         .rent-info {
           flex: 1;
@@ -140,32 +177,35 @@ const RentPage = () => {
       `}</style>
 
       <div className="rent-container">
+
+        <button className="back-btn" onClick={() => navigate("/dashboard")}>← Quay lại</button>
+
         <div className="rent-top">
           <div className="rent-images">
-            <img src={car.img} alt={car.name} className="main-img" />
-            <div className="thumbnail-list">
-              {[vf8, vf9, tesla, bydseal, klara].map((imgSrc, idx) => (
-                <img key={idx} src={imgSrc} alt={`Thumbnail ${idx + 1}`} className="thumbnail" />
-              ))}
-            </div>
+            <img src={vehicle.image || '/images/default-car.jpg'} 
+              alt={vehicle.name} 
+              className="main-img"
+              onError={(e) => {
+                e.target.src = '/images/default-car.jpg';
+              }} 
+            />
           </div>
 
           <div className="rent-info">
-            <h2 className="car-name">{car.name}</h2>
-            <p className="price">590.000 VNĐ/Ngày</p>
+            <h2 className="car-name">{vehicle.name}</h2>
+            <p className="price">{vehicle.price} VNĐ/Ngày</p>
             <ul className="car-specs">
-              <li>4 chỗ</li>
-              <li>Số tự động</li>
-              <li>43 HP</li>
-              <li>285L</li>
-              <li>210km (NEDC)</li>
-              <li>1 túi khí</li>
-              <li>Minicar</li>
-              <li>Giới hạn di chuyển 300 km/ngày</li>
+              <li>🚗 <strong>Loại xe:</strong> {vehicle.type}</li>
+              <li>👥 <strong>Số chỗ:</strong> {vehicle.seats}</li>
+              <li>⚡ <strong>Quãng đường:</strong> {vehicle.range}</li>
+              <li>🧳 <strong>Dung tích cốp:</strong> {vehicle.trunk}</li>
+              <li>🔑 <strong>Hộp số:</strong> Số tự động</li>
+              <li>🔋 <strong>Miễn phí sạc</strong></li>
+              <li>📏 <strong>Giới hạn:</strong> 300 km/ngày</li>
             </ul>
             <button 
               className="rent-btn" 
-              onClick={() => window.location.href = "/booking-form"}
+              onClick={handleBookingClick}
             >
               Đặt xe
             </button>
@@ -175,8 +215,11 @@ const RentPage = () => {
         <div className="rent-section">
           <h3>Các tiện nghi khác</h3>
           <ul>
-            <li>Màn hình giải trí 10 inch</li>
-            <li>La-zăng 16 inch</li>
+            <li>📱 Màn hình giải trí cảm ứng</li>
+            <li>🛞 La-zăng hợp kim</li>
+            <li>❄️ Điều hòa không khí</li>
+            <li>🔒 Khóa cửa tự động</li>
+            <li>📡 Kết nối Bluetooth</li>
           </ul>
         </div>
 
@@ -184,16 +227,16 @@ const RentPage = () => {
           <h3>Điều kiện thuê xe</h3>
           <h4>Thông tin cần có khi nhận xe</h4>
           <ul>
-            <li>CCCD hoặc hộ chiếu còn thời hạn</li>
-            <li>Bằng lái hợp lệ, còn thời hạn</li>
+            <li>✓ CCCD hoặc hộ chiếu còn thời hạn</li>
+            <li>✓ Bằng lái hợp lệ, còn thời hạn</li>
           </ul>
           <h4>Hình thức thanh toán</h4>
           <ul>
-            <li>Trả trước</li>
-            <li>Đặt cọc giữ xe thanh toán 100% khi kí hợp đồng và nhận xe</li>
+            <li>💳 Trả trước</li>
+            <li>💰 Đặt cọc giữ xe thanh toán 100% khi kí hợp đồng và nhận xe</li>
           </ul>
           <h4>Chính sách đặt cọc</h4>
-          <p>Khách hàng phải thanh toán số tiền cọc là 5.000.000đ</p>
+          <p>💵 Khách hàng phải thanh toán số tiền cọc là 5.000.000đ</p>
         </div>
       </div>
     </>

@@ -272,6 +272,7 @@
   color: #000000; /* Màu đen cho tiêu đề phần */
   margin: 0 0 0.5rem;
   font-weight: 600;
+  text-align: left;
 }
 
 .form-row {
@@ -283,6 +284,8 @@
 .form-group-improved {
   flex: 1;
   min-width: 200px; /* Phù hợp modal nhỏ hơn */
+  display: flex;
+  flex-direction: column;
 }
 
 .label-improved {
@@ -291,6 +294,7 @@
   margin-bottom: 0.5rem;
   color: #000000; /* Màu đen cho nhãn */
   font-size: 0.9rem;
+  text-align: left;
 }
 
 .required {
@@ -338,7 +342,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 100px;
-  text-align: center;
+  text-align: left;
 }
 
 .btn-cancel-improved {
