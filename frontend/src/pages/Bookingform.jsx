@@ -153,6 +153,12 @@ const BookingForm = () => {
     }
 
     try {
+
+      const payload = {
+        ...formData,
+        vehicleTypeId: vehicleId  // Sửa từ vehicleTypeId thành vehicleId
+      };
+
       const response = await fetch("http://localhost:8080/api/bookings/create", {
         method: "POST",
         headers: {
@@ -160,23 +166,31 @@ const BookingForm = () => {
           Authorization: `Bearer ${token}`,
         },
 
-        body: JSON.stringify({...formData, vehicleTypeId: vehicleId}),
+        body: JSON.stringify(payload),
 
       });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || "Đặt xe thất bại");
-      }
-
-      const data = response.json();
       if (response.ok) {
         const data = await response.json();
-        alert("Đặt xe thành công!");
+        console.log("Success response:", data);
+        
+        // Hiển thị message từ backend nếu có
+        const message = data.message || "Đặt xe thành công!";
+        alert(message);
+        
         navigate("/history");
-      } 
+      }
       else {
-        alert(data.message || "Đặt xe thất bại");
+        try {
+          const errorData = await response.json();
+          console.log("Error response:", errorData);
+          alert(errorData.message || `HTTP ${response.status}: Đặt xe thất bại`);
+        } catch {
+          // Nếu không parse được JSON, đọc text
+          const errorText = await response.text();
+          console.log("Error text:", errorText);
+          alert(`HTTP ${response.status}: ${errorText || "Đặt xe thất bại"}`);
+        }
       }
     } 
     catch (error) {
