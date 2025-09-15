@@ -8,6 +8,10 @@ import '../admindashboard/AdminNavbar.css';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [loadingPredict, setLoadingPredict] = useState(false);
+  const [predictions, setPredictions] = useState([]); // [{district, avgDemand, count}]
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [error, setError] = useState("");
 
   const handleLogout = async () => {
     try {
@@ -29,6 +33,85 @@ const HomePage = () => {
       alert("Không thể đăng xuất. Vui lòng thử lại.");
     }
   };
+
+  // Tính giờ kế tiếp để hiển thị tiêu đề
+  const nextHourInfo = () => {
+    const now = new Date();
+    const next = new Date(now.getTime() + 60 * 60 * 1000);
+    const hour = next.getHours();
+    const dayOfWeek = next.toLocaleDateString("en-US", { weekday: "long" });
+    return { hour, dayOfWeek };
+  };
+
+  // Gọi 1 API duy nhất: /api/ai/predict/next-hour/all
+  // Sau đó gộp theo district, tính trung bình predicted_demand
+  const loadPredictions = async () => {
+    setLoadingPredict(true);
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      const r = await fetch(PREDICT_ALL_NEXT, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!r.ok) throw new Error(`Predict-all HTTP ${r.status}`);
+      const data = await r.json();
+      if (!Array.isArray(data)) throw new Error("Payload không phải mảng");
+
+      // Chuẩn hóa record trạm
+      const rows = data
+        .map((it) => ({
+          district:
+            it.district ?? it.districtName ?? it.quan ?? it.quanHuyen ?? it.area ?? "",
+          predicted:
+            typeof it.predicted_demand === "number"
+              ? it.predicted_demand
+              : typeof it.predicted_demand === "string"
+              ? Number(it.predicted_demand)
+              : null,
+        }))
+        .filter((x) => x.district && typeof x.predicted === "number" && !Number.isNaN(x.predicted));
+
+      // Gộp theo district
+      const groups = new Map();
+      for (const r of rows) {
+        const key = r.district.trim();
+        if (!groups.has(key)) groups.set(key, { district: key, sum: 0, count: 0 });
+        const g = groups.get(key);
+        g.sum += r.predicted;
+        g.count += 1;
+      }
+
+      // Tính trung bình & sort desc
+      const results = Array.from(groups.values())
+        .map((g) => ({
+          district: g.district,
+          avgDemand: g.count ? g.sum / g.count : null,
+          count: g.count,
+        }))
+        .filter((g) => typeof g.avgDemand === "number")
+        .sort(
+          (a, b) =>
+            (b.avgDemand ?? Number.NEGATIVE_INFINITY) -
+            (a.avgDemand ?? Number.NEGATIVE_INFINITY)
+        );
+
+      setPredictions(results);
+      setLastUpdated(new Date());
+    } catch (e) {
+      console.error(e);
+      setError(e.message || "Không thể tải dự báo");
+    } finally {
+      setLoadingPredict(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPredictions();
+  }, []);
+
+  const { hour, dayOfWeek } = nextHourInfo();
+  const topN = 8;
+  const displayList = predictions.slice(0, topN);
 
   return (
     <div className="homepage">
@@ -162,6 +245,48 @@ const HomePage = () => {
           <p>Theo dõi lịch sử đặt xe và cập nhật thông tin cá nhân dễ dàng.</p>
         </div>
       </div>
+
+      <section className="predict-wrap">
+        <div className="predict-header">
+          <div className="predict-title">
+            Dự báo trung bình theo quận giờ tới ({dayOfWeek}, {String(hour).padStart(2, "0")}:00)
+          </div>
+          <div className="predict-meta">
+            {lastUpdated ? `Cập nhật: ${lastUpdated.toLocaleTimeString()}` : "Chưa cập nhật"}
+          </div>
+        </div>
+
+        <div className="predict-cta">
+          <button className="predict-btn" onClick={loadPredictions} disabled={loadingPredict}>
+            {loadingPredict ? "Đang tính..." : "Làm mới dự báo"}
+          </button>
+          {error && <span style={{ color: "#d32f2f", marginLeft: 8 }}>{error}</span>}
+        </div>
+
+        {loadingPredict && !predictions.length ? (
+          <div className="predict-empty">Đang dự báo theo quận...</div>
+        ) : !predictions.length ? (
+          <div className="predict-empty">Chưa có dữ liệu dự báo theo quận.</div>
+        ) : (
+          <div className="predict-grid">
+            {displayList.map((it) => (
+              <div className="predict-card" key={it.district}>
+                <div className="predict-name">{it.district}</div>
+                <div className="predict-row">
+                  <span>Số trạm tính</span>
+                  <span>{it.count}</span>
+                </div>
+                <div className="predict-row">
+                  <span>Nhu cầu dự báo TB</span>
+                  <span className="predict-chip">
+                    {typeof it.avgDemand === "number" ? it.avgDemand.toFixed(2) : "—"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Footer */}
       <div className="footer" style={{ backgroundColor: '#14452F' }}>
